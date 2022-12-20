@@ -39,8 +39,7 @@ namespace FarmHouseDataModifier
             Func<string> name,
             Func<string> tooltip = null,
             string[] allowedValues = null,
-            Func<string, 
-                string> formatAllowedValue = null,
+            Func<string, string> formatAllowedValue = null,
             string fieldId = null
         );
     }
