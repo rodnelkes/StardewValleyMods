@@ -99,7 +99,7 @@ namespace FarmHouseDataModifier
             {
                 for (var i = 0; i < Enum.GetNames(typeof(FarmMapProperty)).Length; i++)
                 {
-                    asset.AsMap().Data.Properties[((FarmMapProperty)i).ToString()] = this._config.FarmHouseData[this._config.GlobalSettings ? 0 : whichFarm + 1, i];
+                    asset.AsMap().Data.Properties[((FarmMapProperty) i).ToString()] = this._config.FarmHouseData[this._config.GlobalSettings ? 0 : whichFarm + 1, i];
                 }
             });
         }
