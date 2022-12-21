@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Xna.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
+using StardewValley.Buildings;
+using StardewValley.Objects;
 
 namespace FarmHouseDataModifier
 {
     internal sealed class ModEntry : Mod
     {
         private ModConfig _config;
-        
+        private List<string> _tvList = new();
+
         public override void Entry(IModHelper helper)
         {
             this._config = this.Helper.ReadConfig<ModConfig>();
@@ -16,6 +22,8 @@ namespace FarmHouseDataModifier
                 return;
             helper.Events.GameLoop.GameLaunched += this.OnGameLaunched;
             helper.Events.Content.AssetRequested += this.OnAssetRequested;
+            helper.Events.GameLoop.SaveLoaded += this.OnSaveLoaded;
+            helper.Events.World.BuildingListChanged += this.OnBuildingListChanged;
         }
 
         private void OnGameLaunched(object sender, GameLaunchedEventArgs e)
@@ -99,9 +107,54 @@ namespace FarmHouseDataModifier
             {
                 for (var i = 0; i < Enum.GetNames(typeof(FarmMapProperty)).Length; i++)
                 {
-                    asset.AsMap().Data.Properties[((FarmMapProperty) i).ToString()] = this._config.FarmHouseData[this._config.GlobalSettings ? 0 : whichFarm + 1, i];
+                    var farmMapProperty = this._config.FarmHouseData[this._config.GlobalSettings ? 0 : whichFarm + 1, i];
+                    if (i == 1)
+                    {
+                        var allFurniture = farmMapProperty.Split(' ');
+                        var furnitureList = new List<string>();
+                        for (var j = 0; j < allFurniture.GetLength(0); j += 4)
+                        {
+                            var item = allFurniture[j] + ' ' + allFurniture[j + 1] + ' ' + allFurniture[j + 2];
+                            if (new[] { 1466, 1468, 1680, 2326 }.Contains(int.Parse(allFurniture[j])))
+                                _tvList.Add(item);
+                            else
+                                furnitureList.Add(item + ' ' + allFurniture[j + 3]);
+                        }
+                        farmMapProperty = string.Join(' ', furnitureList);
+                    }
+                    asset.AsMap().Data.Properties[((FarmMapProperty) i).ToString()] = farmMapProperty;
                 }
             });
+        }
+
+        private void SpawnTVs(GameLocation location)
+        {
+            foreach (var tvProperties in _tvList.Select(tv => tv.Split(' ')))
+            {
+                var tvObject = new TV(int.Parse(tvProperties[0]), new Vector2(int.Parse(tvProperties[1]), int.Parse(tvProperties[2])));
+                location.furniture.Add(tvObject);
+            }
+        }
+
+        private void SpawnCabinTVs(IEnumerable<Building> buildings)
+        {
+            foreach (var building in buildings.Where(building => building.isCabin))
+                SpawnTVs(Game1.getLocationFromName(building.nameOfIndoors));
+        }
+        
+        private void OnSaveLoaded(object sender, SaveLoadedEventArgs e)
+        {
+            if (!Context.IsMainPlayer || !_tvList.Any() || Game1.Date.TotalDays != 0)
+                return;
+            SpawnTVs(Game1.currentLocation);
+            SpawnCabinTVs(Game1.getFarm().buildings);
+        }
+        
+        private void OnBuildingListChanged(object sender, BuildingListChangedEventArgs e)
+        {
+            if (!Context.IsMainPlayer || !_tvList.Any())
+                return;
+            SpawnCabinTVs(e.Added);
         }
     }
 }
