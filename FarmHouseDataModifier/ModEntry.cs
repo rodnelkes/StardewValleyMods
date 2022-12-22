@@ -124,6 +124,7 @@ namespace FarmHouseDataModifier
                     }
                     asset.AsMap().Data.Properties[((FarmMapProperty) i).ToString()] = farmMapProperty;
                 }
+                this.Monitor.Log($"Modified properties for {asset.Name}");
             });
         }
 
@@ -133,6 +134,7 @@ namespace FarmHouseDataModifier
             {
                 var tvObject = new TV(int.Parse(tvProperties[0]), new Vector2(int.Parse(tvProperties[1]), int.Parse(tvProperties[2])));
                 location.furniture.Add(tvObject);
+                this.Monitor.Log($"Spawned {tvObject.Name} at {location.uniqueName.Value ?? location.Name} ({tvProperties[1]}, {tvProperties[2]})");
             }
         }
 
