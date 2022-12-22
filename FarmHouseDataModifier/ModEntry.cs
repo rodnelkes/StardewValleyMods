@@ -124,7 +124,7 @@ namespace FarmHouseDataModifier
                     }
                     asset.AsMap().Data.Properties[((FarmMapProperty) i).ToString()] = farmMapProperty;
                 }
-                this.Monitor.Log($"Modified properties for {asset.Name}");
+                this.Monitor.Log($"Modified farmhouse data for {asset.Name}");
             });
         }
 
